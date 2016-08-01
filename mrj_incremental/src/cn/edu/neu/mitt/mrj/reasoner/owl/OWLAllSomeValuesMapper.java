@@ -49,6 +49,12 @@ public class OWLAllSomeValuesMapper extends Mapper<Long, Row, BytesWritable, Byt
 	public void map(Long key, Row row, Context context) throws IOException, InterruptedException {
 		//ASS
 //		log.info("I'm in OWLAllSomeValuesMapper");
+		if (CassandraDB.updatelabel == 1) {
+			int label = row.getInt(CassandraDB.COLUMN_UPDATELABEL);
+			if (label == 0) {
+				return;
+			}			
+		}
 		int step = row.getInt(CassandraDB.COLUMN_INFERRED_STEPS);
 		Triple value = CassandraDB.readJustificationFromMapReduceRow(row);
 

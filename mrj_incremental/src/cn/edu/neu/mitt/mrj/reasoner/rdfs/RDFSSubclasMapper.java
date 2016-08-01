@@ -25,6 +25,13 @@ public class RDFSSubclasMapper extends Mapper<Long, Row, BytesWritable, LongWrit
 	protected LongWritable oValue = new LongWritable(0);
 
 	public void map(Long key, Row row, Context context) throws IOException, InterruptedException {
+		if (CassandraDB.updatelabel == 1) {
+			CassandraDB.addedtriple1 = false;
+			int label = row.getInt(CassandraDB.COLUMN_UPDATELABEL);
+			if (label == 1) {
+				CassandraDB.addedtriple1 = true;
+			}			
+		}
 		Triple value = CassandraDB.readJustificationFromMapReduceRow(row);
 
 		oValue.set(value.getObject());

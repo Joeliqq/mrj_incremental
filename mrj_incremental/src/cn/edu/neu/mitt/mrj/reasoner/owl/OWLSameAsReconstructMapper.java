@@ -21,6 +21,7 @@ public class OWLSameAsReconstructMapper extends Mapper<LongWritable, BytesWritab
 	private byte[] bValue = new byte[9+8];	//��һ��Long�����ڱ����滻ǰ��resource
 
 	public void map(LongWritable key, BytesWritable value, Context context) throws IOException, InterruptedException {
+
 		oKey.set(value.getBytes(), 1, 13);	//��owl:sameas��Ԫ������������tripleId+key.getStep()+key.getDerivation()
 		bValue[0] = value.getBytes()[0];	//���ܵ�ֵ��0,1,2,3,4��4�Ǳ�ʾν����owl:sameas������Ϊ��owl:sameas������0��ʾ���1��ʾν�2��3��ʾ����
 		

@@ -36,6 +36,13 @@ public class OWLEquivalenceSCSPMapper extends Mapper<Long, Row, LongWritable, By
 	
 	public void map(Long key, Row row, Context context) throws IOException, InterruptedException {
 //		System.out.println("Into OWLEquivalenceSCSPMapper, processing: " + value);
+		if (CassandraDB.updatelabel == 1) {
+			CassandraDB.addedtriple1 = false;
+			int label = row.getInt(CassandraDB.COLUMN_UPDATELABEL);
+			if (label == 1) {
+				CassandraDB.addedtriple1 = true;
+			}			
+		}
 		Triple value = CassandraDB.readJustificationFromMapReduceRow(row);
 		
 		if (value.getSubject() == value.getObject())

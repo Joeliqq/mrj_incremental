@@ -28,6 +28,12 @@ public class OWLTransitivityMapper extends Mapper<Long, Row, BytesWritable, Byte
 	int maxLevel = 0;
 	
 	public void map(Long key, Row row, Context context) throws IOException, InterruptedException {
+		if (CassandraDB.updatelabel == 1) {
+			int label = row.getInt(CassandraDB.COLUMN_UPDATELABEL);
+			if (label == 0) {
+				return;
+			}			
+		}		
 		//int step = row.getInt(CassandraDB.COLUMN_INFERRED_STEPS);
 		int level = row.getInt(CassandraDB.COLUMN_TRANSITIVE_LEVELS);	// Added by WuGang, 2015-07-15
 				

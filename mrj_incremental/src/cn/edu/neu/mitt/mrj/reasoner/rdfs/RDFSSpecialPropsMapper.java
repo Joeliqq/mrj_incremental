@@ -37,6 +37,13 @@ public class RDFSSpecialPropsMapper extends Mapper<Long, Row, BytesWritable, Lon
 	protected HashMap<Long, Integer> literalSubclasses = null;
 	
 	public void map(Long key, Row row, Context context) throws IOException, InterruptedException {
+		if (CassandraDB.updatelabel == 1) {
+			CassandraDB.addedtriple1 = false;
+			int label = row.getInt(CassandraDB.COLUMN_UPDATELABEL);
+			if (label == 1) {
+				CassandraDB.addedtriple1 = true;
+			}			
+		}
 		Triple value = CassandraDB.readJustificationFromMapReduceRow(row);
 
 		/*if (value.getPredicate() == TriplesUtils.RDF_TYPE) {

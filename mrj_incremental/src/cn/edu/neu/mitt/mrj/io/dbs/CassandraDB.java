@@ -1196,6 +1196,8 @@ public class CassandraDB {
 		
 		logger.info("Time for CassandraDB's loadMapIntoMemory " + (System.currentTimeMillis() - startTime));
 
+		System.out.println("schemaTriples : " + schemaTriples);
+		
 		return schemaTriples;
 	}	
 

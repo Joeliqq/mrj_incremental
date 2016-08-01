@@ -23,6 +23,12 @@ public class OWLSameAsMapper extends Mapper<Long, Row, LongWritable, BytesWritab
 	 * 1 : the pair is of the "group" type */
 	public void map(Long key, Row row, Context context) throws IOException, InterruptedException {
 //		System.out.println("In OWLSameAsMapper.");
+		if (CassandraDB.updatelabel == 1) {
+			int label = row.getInt(CassandraDB.COLUMN_UPDATELABEL);
+			if (label == 0) {
+				return;
+			}			
+		}
 		Triple value = CassandraDB.readJustificationFromMapReduceRow(row);
 
 		

@@ -21,6 +21,12 @@ public class OWLSampleResourcesMapper extends Mapper<Long, Row, LongWritable, Lo
 	
 	@Override
 	public void map(Long key, Row row, Context context) throws IOException, InterruptedException {
+		if (CassandraDB.updatelabel == 1) {
+			int label = row.getInt(CassandraDB.COLUMN_UPDATELABEL);
+			if (label == 0) {
+				return;
+			}			
+		}
 		Triple value = CassandraDB.readJustificationFromMapReduceRow(row);
 
 		if (value.getPredicate() == TriplesUtils.OWL_SAME_AS) {

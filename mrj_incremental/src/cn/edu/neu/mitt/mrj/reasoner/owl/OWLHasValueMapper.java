@@ -34,6 +34,13 @@ public class OWLHasValueMapper extends Mapper<Long, Row, LongWritable, BytesWrit
 	private int previousStep = -1;
 	
 	public void map(Long key, Row row, Context context) throws IOException, InterruptedException {
+		if (CassandraDB.updatelabel == 1) {
+			CassandraDB.addedtriple1 = false;
+			int label = row.getInt(CassandraDB.COLUMN_UPDATELABEL);
+			if (label == 1) {
+				CassandraDB.addedtriple1 = true;
+			}			
+		}
 		int step = row.getInt(CassandraDB.COLUMN_INFERRED_STEPS);
 		Triple value = CassandraDB.readJustificationFromMapReduceRow(row);
 
