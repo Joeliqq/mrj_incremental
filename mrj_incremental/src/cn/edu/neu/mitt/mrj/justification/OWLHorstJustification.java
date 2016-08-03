@@ -245,16 +245,16 @@ public class OWLHorstJustification extends Configured implements Tool {
 
 			for (Set<TupleValue> justification : justifications){
 //				int tripleamount = 0;
-//				System.out.println(">>>Justification - " + ++count + ":");
-//		        out.write(">>>Justification - " + ++count + ":" + "\r\n");
+				System.out.println(">>>Justification - " + ++count + ":");
+		        out.write(">>>Justification - " + ++count + ":" + "\r\n");
 				for(TupleValue triple : justification){
 					long sub = triple.getLong(0);
 					long pre = triple.getLong(1);
 					long obj = triple.getLong(2);
-//					System.out.println("\t<" + sub + ", " + pre + ", " + obj + ">" + 
-//							" - <" + db.idToLabel(sub) + ", " + db.idToLabel(pre) + ", " + db.idToLabel(obj) + ">");
-//			        out.write("\t<" + sub + ", " + pre + ", " + obj + ">" + 
-//							" - <" + db.idToLabel(sub) + ", " + db.idToLabel(pre) + ", " + db.idToLabel(obj) + ">" + "\r\n");
+					System.out.println("\t<" + sub + ", " + pre + ", " + obj + ">" + 
+							" - <" + db.idToLabel(sub) + ", " + db.idToLabel(pre) + ", " + db.idToLabel(obj) + ">");
+			        out.write("\t<" + sub + ", " + pre + ", " + obj + ">" + 
+							" - <" + db.idToLabel(sub) + ", " + db.idToLabel(pre) + ", " + db.idToLabel(obj) + ">" + "\r\n");
 					tripleamount++;
 				}
 //				System.out.println(tripleamount);

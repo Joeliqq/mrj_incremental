@@ -225,7 +225,8 @@ public class CassandraDB {
                 COLUMN_V3 + " bigint, " +
 //                COLUMN_TRIPLE_TYPE + " int, " +
                 COLUMN_INFERRED_STEPS + " int, " +		// from this line, the fields are non-primary key
-                COLUMN_TRANSITIVE_LEVELS + " int, " +
+                COLUMN_TRANSITIVE_LEVELS + " int, " + 
+                COLUMN_UPDATELABEL + " int, " + 
                 "   PRIMARY KEY ((" + COLUMN_SUB + ", " + COLUMN_PRE + ", " + COLUMN_OBJ + "), " + COLUMN_RULE +
                ", " + COLUMN_TRIPLE_TYPE + ", " + COLUMN_IS_LITERAL + ", " + COLUMN_V1 + ", " + COLUMN_V2 + ", " +  COLUMN_V3 +  
                 //", " + COLUMN_TRIPLE_TYPE +
@@ -427,6 +428,7 @@ public class CassandraDB {
 //                COLUMN_TRIPLE_TYPE + " int, " +
 				CassandraDB.COLUMN_INFERRED_STEPS + " int, " +		// this is the only field that is not included in the primary key
 				CassandraDB.COLUMN_TRANSITIVE_LEVELS + " int, " +
+				CassandraDB.COLUMN_UPDATELABEL +  " int , " + 
                 "   PRIMARY KEY ((" + CassandraDB.COLUMN_IS_LITERAL + ", " + CassandraDB.COLUMN_RULE + ", " + CassandraDB.COLUMN_SUB  + "), " +
                 CassandraDB.COLUMN_TRIPLE_TYPE + ", " + CassandraDB.COLUMN_PRE + ", " + CassandraDB.COLUMN_OBJ + ", " + CassandraDB.COLUMN_V1 + ", " + CassandraDB.COLUMN_V2 + ", " +  CassandraDB.COLUMN_V3 +
                 //", " + COLUMN_TRIPLE_TYPE +
@@ -683,232 +685,7 @@ public class CassandraDB {
 		return step;
 	}
 	
-	/*
-	public static void writeJustificationToMapReduceMultipleOutputsLessObjects(
-			Triple triple, 
-			TripleSource source, 
-			MultipleOutputs output,
-			Map<String, ByteBuffer> keys,
-			Map<String, ByteBuffer> allkeys,
-			List<ByteBuffer> stepsValues,
-			List<ByteBuffer> allTValues,
-			String stepname) throws IOException, InterruptedException{
 
-        keys.put(CassandraDB.COLUMN_SUB, ByteBufferUtil.bytes(triple.getSubject()));
-        keys.put(CassandraDB.COLUMN_PRE, ByteBufferUtil.bytes(triple.getPredicate()));
-        keys.put(CassandraDB.COLUMN_OBJ, ByteBufferUtil.bytes(triple.getObject()));
-        keys.put(CassandraDB.COLUMN_RULE, ByteBufferUtil.bytes((int)triple.getType()));	// int
-        keys.put(CassandraDB.COLUMN_V1, ByteBufferUtil.bytes(triple.getRsubject()));	// long
-        keys.put(CassandraDB.COLUMN_V2, ByteBufferUtil.bytes(triple.getRpredicate()));	// long
-        keys.put(CassandraDB.COLUMN_V3, ByteBufferUtil.bytes(triple.getRobject()));	// long
-        
-        allkeys.put(CassandraDB.COLUMN_SUB, ByteBufferUtil.bytes(triple.getSubject()));
-        allkeys.put(CassandraDB.COLUMN_PRE, ByteBufferUtil.bytes(triple.getPredicate()));
-        allkeys.put(CassandraDB.COLUMN_OBJ, ByteBufferUtil.bytes(triple.getObject()));
-	
-    	allTValues.add(ByteBufferUtil.bytes(triple.getSubject()));
-    	allTValues.add(ByteBufferUtil.bytes(triple.getPredicate()));
-    	allTValues.add(ByteBufferUtil.bytes(triple.getObject()));
-    	//用数字直接替代。
-    	allTValues.add(triple.isObjectLiteral()?ByteBuffer.wrap(new byte[]{1}):ByteBuffer.wrap(new byte[]{0}));
-    	allTValues.add(ByteBufferUtil.bytes(
-    			TriplesUtils.getTripleType(
-    					source, triple.getSubject(), 
-    					triple.getPredicate(), 
-    					triple.getObject())));
-    	allTValues.add(ByteBufferUtil.bytes((int)source.getStep()));
-    	
-    	stepsValues.add(ByteBufferUtil.bytes(triple.getSubject()));
-    	stepsValues.add(ByteBufferUtil.bytes(triple.getPredicate()));
-    	stepsValues.add(ByteBufferUtil.bytes(triple.getObject()));
-    	stepsValues.add(ByteBufferUtil.bytes((int)triple.getType()));
-    	stepsValues.add(ByteBufferUtil.bytes(triple.getRsubject()));
-    	stepsValues.add(ByteBufferUtil.bytes(triple.getRpredicate()));
-    	stepsValues.add(ByteBufferUtil.bytes(triple.getRobject()));
-    	stepsValues.add(ByteBufferUtil.bytes((int)source.getTransitiveLevel()));  	
-    	
-    	output.write(CassandraDB.COLUMNFAMILY_ALLTRIPLES, null, allTValues);
-    	output.write(stepname, null, stepsValues);
-
-
-    	keys.clear();
-    	allkeys.clear();
-    	allTValues.clear();
-    	stepsValues.clear();
-   	
-	}
-	 	*/
-
-	/*
-	public static void writeJustificationToMapReduceMultipleOutputs(
-			Triple triple, 
-			TripleSource source, 
-			MultipleOutputs output,
-			String stepname) throws IOException, InterruptedException{
-		Map<String, ByteBuffer> keys = 	new LinkedHashMap<String, ByteBuffer>();
-		Map<String, ByteBuffer> allkeys = 	new LinkedHashMap<String, ByteBuffer>();
-    	List<ByteBuffer> allvariables =  new ArrayList<ByteBuffer>();
-//		long time = System.currentTimeMillis();
-	
-    	byte one = 1;
-    	byte zero = 0;
-	    // Prepare composite key (sub, pre, obj)
-        keys.put(CassandraDB.COLUMN_SUB, ByteBufferUtil.bytes(triple.getSubject()));
-        keys.put(CassandraDB.COLUMN_PRE, ByteBufferUtil.bytes(triple.getPredicate()));
-        keys.put(CassandraDB.COLUMN_OBJ, ByteBufferUtil.bytes(triple.getObject()));
-    	// the length of boolean type in cassandra is one byte!!!!!!!!
-        keys.put(CassandraDB.COLUMN_RULE, ByteBufferUtil.bytes((int)triple.getType()));	// int
-        keys.put(CassandraDB.COLUMN_V1, ByteBufferUtil.bytes(triple.getRsubject()));	// long
-        keys.put(CassandraDB.COLUMN_V2, ByteBufferUtil.bytes(triple.getRpredicate()));	// long
-        keys.put(CassandraDB.COLUMN_V3, ByteBufferUtil.bytes(triple.getRobject()));	// long
-        
-        allkeys.put(CassandraDB.COLUMN_SUB, ByteBufferUtil.bytes(triple.getSubject()));
-        allkeys.put(CassandraDB.COLUMN_PRE, ByteBufferUtil.bytes(triple.getPredicate()));
-        allkeys.put(CassandraDB.COLUMN_OBJ, ByteBufferUtil.bytes(triple.getObject()));
-        
-        allvariables.add(ByteBufferUtil.bytes(source.getStep()));
-        allvariables.add(triple.isObjectLiteral()?ByteBuffer.wrap(new byte[]{one}):ByteBuffer.wrap(new byte[]{zero}));        
-        allvariables.add(ByteBufferUtil.bytes((int)triple.getType()));
-        
-        // Prepare variables
-    	List<ByteBuffer> variables =  new ArrayList<ByteBuffer>();
-//      variables.add(ByteBufferUtil.bytes(oValue.getSubject()));
-    	// the length of boolean type in cassandra is one byte!!!!!!!!
-    	// For column inferred, init it as false i.e. zero
-        //variables.add(ByteBuffer.wrap(new byte[]{zero}));
-
-    	variables.add(ByteBufferUtil.bytes(source.getTransitiveLevel()));
-    	
-
-
-    	// Keys are not used for 
-    	//   CqlBulkRecordWriter.write(Object key, List<ByteBuffer> values), 
-    	//   so it can be set to null.
-    	// Only values are used there where the value correspond to 
-    	//   the insert statement set in CqlBulkOutputFormat.setColumnFamilyInsertStatement()
-    	// All triples columnfamily:
-    	//     sub, pre, obj, isliteral, tripletype, inferredsteps
-    	// Steps columnfamily:
-    	//     sub, pre, obj, rule, v1, v2, v3, transitivelevel
-    	
-    	List<ByteBuffer> allTValues =  new ArrayList<ByteBuffer>();
-    	allTValues.add(ByteBufferUtil.bytes(triple.getSubject()));
-    	allTValues.add(ByteBufferUtil.bytes(triple.getPredicate()));
-    	allTValues.add(ByteBufferUtil.bytes(triple.getObject()));
-    	allTValues.add(triple.isObjectLiteral()?ByteBuffer.wrap(new byte[]{one}):ByteBuffer.wrap(new byte[]{zero}));
-    	allTValues.add(ByteBufferUtil.bytes(
-    			TriplesUtils.getTripleType(
-    					source, triple.getSubject(), 
-    					triple.getPredicate(), 
-    					triple.getObject())));
-    	allTValues.add(ByteBufferUtil.bytes((int)source.getStep()));
-    	
-    	List<ByteBuffer> stepsValues =  new ArrayList<ByteBuffer>();
-    	stepsValues.add(ByteBufferUtil.bytes(triple.getSubject()));
-    	stepsValues.add(ByteBufferUtil.bytes(triple.getPredicate()));
-    	stepsValues.add(ByteBufferUtil.bytes(triple.getObject()));
-    	stepsValues.add(ByteBufferUtil.bytes((int)triple.getType()));
-    	stepsValues.add(ByteBufferUtil.bytes(triple.getRsubject()));
-    	stepsValues.add(ByteBufferUtil.bytes(triple.getRpredicate()));
-    	stepsValues.add(ByteBufferUtil.bytes(triple.getRobject()));
-    	stepsValues.add(ByteBufferUtil.bytes((int)source.getTransitiveLevel()));  	
-    	
-//    	time = System.currentTimeMillis();
-    	output.write(CassandraDB.COLUMNFAMILY_ALLTRIPLES, null, allTValues);
-//		System.out.println("wrote all " + (System.currentTimeMillis() - time));
-//		System.out.println("write all " + (System.currentTimeMillis() - time));//    	_output.write(stepname, keys, variables);
-//		time = System.currentTimeMillis();
-    	output.write(stepname, null, stepsValues);
-//		System.out.println("wrote steps" + (System.currentTimeMillis() - time));
-
-    	
-	}
-	*/
-/*
-	public static void writeJustificationToMapReduceContext(
-			Triple triple, 
-			TripleSource source, 
-			Context context,
-			String stepname) throws IOException, InterruptedException{
-		Map<String, ByteBuffer> keys = 	new LinkedHashMap<String, ByteBuffer>();
-		Map<String, ByteBuffer> allkeys = 	new LinkedHashMap<String, ByteBuffer>();
-    	List<ByteBuffer> allvariables =  new ArrayList<ByteBuffer>();
-		long time = System.currentTimeMillis();
-
-    	byte one = 1;
-    	byte zero = 0;
-
-	    // Prepare composite key (sub, pre, obj)
-        keys.put(CassandraDB.COLUMN_SUB, ByteBufferUtil.bytes(triple.getSubject()));
-        keys.put(CassandraDB.COLUMN_PRE, ByteBufferUtil.bytes(triple.getPredicate()));
-        keys.put(CassandraDB.COLUMN_OBJ, ByteBufferUtil.bytes(triple.getObject()));
-    	// the length of boolean type in cassandra is one byte!!!!!!!!
-        keys.put(CassandraDB.COLUMN_IS_LITERAL, 
-        		triple.isObjectLiteral()?ByteBuffer.wrap(new byte[]{one}):ByteBuffer.wrap(new byte[]{zero}));
-        int tripletype = TriplesUtils.DATA_TRIPLE;
-        if (triple.getType()==TriplesUtils.OWL_HORST_SYNONYMS_TABLE){
-        	tripletype = TriplesUtils.SYNONYMS_TABLE;	// In this way, we can provide a special triple type for triples in synonyms table 
-        }else{
-        	tripletype = TriplesUtils.getTripleType(source, triple.getSubject(), triple.getPredicate(), triple.getObject());
-        }
-        keys.put(CassandraDB.COLUMN_TRIPLE_TYPE, ByteBufferUtil.bytes(tripletype));	// Modified by WuGang 20150109
-        keys.put(CassandraDB.COLUMN_RULE, ByteBufferUtil.bytes((int)triple.getType()));	// int
-        keys.put(CassandraDB.COLUMN_V1, ByteBufferUtil.bytes(triple.getRsubject()));	// long
-        keys.put(CassandraDB.COLUMN_V2, ByteBufferUtil.bytes(triple.getRpredicate()));	// long
-        keys.put(CassandraDB.COLUMN_V3, ByteBufferUtil.bytes(triple.getRobject()));	// long
-        
-        // Prepare variables
-    	List<ByteBuffer> variables =  new ArrayList<ByteBuffer>();
-//      variables.add(ByteBufferUtil.bytes(oValue.getSubject()));
-    	// the length of boolean type in cassandra is one byte!!!!!!!!
-    	// For column inferred, init it as false i.e. zero
-//      variables.add(ByteBuffer.wrap(new byte[]{zero}));
-    	variables.add(ByteBufferUtil.bytes(source.getStep()));		// It corresponds to COLUMN_INFERRED_STEPS where steps = 0 means an original triple 
-    	variables.add(ByteBufferUtil.bytes(source.getTransitiveLevel()));		// It corresponds to COLUMN_TRANSITIVE_LEVEL, only useful in owl's transitive  
-        context.write(keys, variables);
-	}
-*/
-	/*
-	public static void writealltripleToMapReduceContext(
-			Triple triple, 
-			TripleSource source, 
-			Context context) throws IOException, InterruptedException{
-		Map<String, ByteBuffer> keys = 	new LinkedHashMap<String, ByteBuffer>();
-
-    	byte one = 1;
-    	byte zero = 0;
-
-	    // Prepare composite key (sub, pre, obj)
-        keys.put(CassandraDB.COLUMN_SUB, ByteBufferUtil.bytes(triple.getSubject()));
-        keys.put(CassandraDB.COLUMN_PRE, ByteBufferUtil.bytes(triple.getPredicate()));
-        keys.put(CassandraDB.COLUMN_OBJ, ByteBufferUtil.bytes(triple.getObject()));
-    	// the length of boolean type in cassandra is one byte!!!!!!!!
-        keys.put(CassandraDB.COLUMN_IS_LITERAL, 
-        		triple.isObjectLiteral()?ByteBuffer.wrap(new byte[]{one}):ByteBuffer.wrap(new byte[]{zero}));
-        int tripletype = TriplesUtils.DATA_TRIPLE;
-        if (triple.getType()==TriplesUtils.OWL_HORST_SYNONYMS_TABLE){
-        	tripletype = TriplesUtils.SYNONYMS_TABLE;	// In this way, we can provide a special triple type for triples in synonyms table 
-        }else{
-        	tripletype = TriplesUtils.getTripleType(source, triple.getSubject(), triple.getPredicate(), triple.getObject());
-        }
-        keys.put(CassandraDB.COLUMN_TRIPLE_TYPE, ByteBufferUtil.bytes(tripletype));	// Modified by WuGang 20150109
-        keys.put(CassandraDB.COLUMN_RULE, ByteBufferUtil.bytes((int)triple.getType()));	// int
-        keys.put(CassandraDB.COLUMN_V1, ByteBufferUtil.bytes(triple.getRsubject()));	// long
-        keys.put(CassandraDB.COLUMN_V2, ByteBufferUtil.bytes(triple.getRpredicate()));	// long
-        keys.put(CassandraDB.COLUMN_V3, ByteBufferUtil.bytes(triple.getRobject()));	// long
-        
-        // Prepare variables
-    	List<ByteBuffer> variables =  new ArrayList<ByteBuffer>();
-//      variables.add(ByteBufferUtil.bytes(oValue.getSubject()));
-    	// the length of boolean type in cassandra is one byte!!!!!!!!
-    	// For column inferred, init it as false i.e. zero
-//      variables.add(ByteBuffer.wrap(new byte[]{zero}));
-    	variables.add(ByteBufferUtil.bytes(source.getStep()));		// It corresponds to COLUMN_INFERRED_STEPS where steps = 0 means an original triple 
-    	variables.add(ByteBufferUtil.bytes(source.getTransitiveLevel()));		// It corresponds to COLUMN_TRANSITIVE_LEVEL, only useful in owl's transitive  
-        context.write(keys, variables);
-	}
-	*/
-	
 	public static void writeJustificationToMapReduceContext(
 			Triple triple, 
 			TripleSource source, 
@@ -947,8 +724,7 @@ public class CassandraDB {
     	
     	variables.add(ByteBufferUtil.bytes(source.getLabel()));
     	
-    	context.write(null, variables);
-    	
+    	context.write(null, variables);	
 	}
 	
 	public boolean loadSetIntoMemory(HashMap<Long, Integer> schemaTriples, Set<Integer> filters, int previousStep) throws IOException, InvalidRequestException, UnavailableException, TimedOutException, SchemaDisagreementException, TException {
@@ -1068,74 +844,7 @@ public class CassandraDB {
 		return tracingEntries;
 	}
 	
-	
-//	public boolean loadSetIntoMemory(
-//			Set<Long> schemaTriples, Set<Integer> filters, 
-//			int previousStep, boolean inverted)	throws IOException, InvalidRequestException, UnavailableException, TimedOutException, SchemaDisagreementException, TException {
-//		long startTime = System.currentTimeMillis();
-//		boolean schemaChanged = false;
-//
-//		logger.info("In CassandraDB's loadSetIntoMemory");
-//		
-//		// Require an index created on COLUMN_TRIPLE_TYPE column
-//		/*
-//		 * Be Attention
-//		 * add ALLOW FILTERING
-//		 * 2015/6/12
-//		 */
-//		
-//
-//        String query = "SELECT " + COLUMN_SUB + ", " + COLUMN_OBJ +  ", " + COLUMN_INFERRED_STEPS +  ", " + COLUMN_UPDATELABEL +
-//        		" FROM " + KEYSPACE + "."  + COLUMNFAMILY_JUSTIFICATIONS +  
-//                " WHERE " + COLUMN_TRIPLE_TYPE + " = ? ALLOW FILTERING";
-//        System.out.println(query);
-//        
-//        CqlPreparedResult preparedResult = client.prepare_cql3_query(ByteBufferUtil.bytes(query), Compression.NONE);
-//
-//        for (int filter : filters){
-//        	List<ByteBuffer> list = new ArrayList<ByteBuffer>();
-//        	list.add(ByteBufferUtil.bytes(filter));
-//        	CqlResult result = client.execute_prepared_cql3_query(preparedResult.itemId, list, ConsistencyLevel.ONE);
-//        	Iterator<CqlRow> it =result.getRowsIterator();
-//        	while(it.hasNext() ){
-//        		CqlRow row = it.next();
-//        		Iterator<Column> columnsIt = row.getColumnsIterator();
-//      			Long sub = null, obj = null;
-//	      		while (columnsIt.hasNext()) {
-//	      			Column column = columnsIt.next();
-//	      		    if (new String(column.getName()).equals(COLUMN_SUB))
-//	      		    	sub = ByteBufferUtil.toLong(column.bufferForValue());
-//	      		    if (new String(column.getName()).equals(COLUMN_OBJ))
-//	      		    	obj = ByteBufferUtil.toLong(column.bufferForValue());
-//	      		    if (new String(column.getName()).equals(COLUMN_INFERRED_STEPS)){
-//	      		    	int step = ByteBufferUtil.toInt(column.bufferForValue());
-//	      		    	if (step > previousStep)
-//							schemaChanged = true;
-//	      		    }
-//	      		    if (new String(column.getName()).equals(COLUMN_UPDATELABEL)) {
-//						int addlabel = ByteBufferUtil.toInt(column.bufferForValue());
-//					}
-//	     		}
-//    			if (!inverted)
-//    				schemaTriples.add(sub);  			
-//        		else
-//        			schemaTriples.add(obj);
-//    			
-//    			/*
-//    			 * shemaTriples 是集合，无序，无法判断 updatelabe 是对应哪一个
-//    			 * 
-//    			 */
-//    			
-//    			System.out.println("schema : " + schemaTriples);
-//
-//        	}
-//        }
-//		
-//		logger.debug("Time for CassandraDB's loadSetIntoMemory " + (System.currentTimeMillis() - startTime));
-//		return schemaChanged;
-//	}
-	
-	
+
 	public Map<Long, Collection<Long>> loadMapIntoMemory(Set<Integer> filters) throws IOException, InvalidRequestException, UnavailableException, TimedOutException, SchemaDisagreementException, TException {
 		return loadMapIntoMemory(filters, false);
 	}
@@ -1326,155 +1035,11 @@ public class CassandraDB {
 		return schemaChanged;
 	}
 	
-	
-	
-/*
-	public static void removeOriginalTriples(){
-		if (delornot == true)
-			return;
-		delornot = true;
-		//ִ�в�Ӧ�жϡ�
-		Builder builder = Cluster.builder();
-		builder.addContactPoint(DEFAULT_HOST);
-		SocketOptions socketoptions= new SocketOptions().setKeepAlive(true).setReadTimeoutMillis(10 * 10000).setConnectTimeoutMillis(5 * 10000);
-		Cluster clu = builder.build();
-		Session session = clu.connect();
-		
-        String cquery1 = "CREATE TABLE IF NOT EXISTS " + KEYSPACE + "."  + "ruleiszero" + 
-                " ( " + 
-                COLUMN_SUB + " bigint, " +			// partition key
-                COLUMN_PRE + " bigint, " +			// partition key
-                COLUMN_OBJ + " bigint, " +			// partition key
-                COLUMN_IS_LITERAL + " boolean, " +	// partition key
-                COLUMN_TRIPLE_TYPE + " int, " +
-                COLUMN_RULE + " int, " +
-                COLUMN_V1 + " bigint, " +
-                COLUMN_V2 + " bigint, " +
-                COLUMN_V3 + " bigint, " +
-//                COLUMN_TRIPLE_TYPE + " int, " +
-                COLUMN_INFERRED_STEPS + " int, " +		// from this line is non-primary key
-                COLUMN_TRANSITIVE_LEVELS + " int, " +	
-                "   PRIMARY KEY ((" + COLUMN_SUB + ", " + COLUMN_PRE + ", " + COLUMN_OBJ +  ", " + COLUMN_IS_LITERAL + "), " +
-                COLUMN_TRIPLE_TYPE + ", " + COLUMN_RULE + ", " + COLUMN_V1 + ", " + COLUMN_V2 + ", " +  COLUMN_V3 +  
-                //", " + COLUMN_TRIPLE_TYPE +
-                " ) ) ";
-        session.execute(cquery1);
 
-		//SELECT ALL AND DEL ALL
-		SimpleStatement statement = new SimpleStatement("SELECT * FROM mrjks.justifications");
-		statement.setFetchSize(100);
-		ResultSet results = session.execute(statement);
-		
-		System.out.println("--------DEL ALL----------");
-		for (Row row : results){
-			
-			if(row.getInt(COLUMN_RULE) != 0){
-				session.execute("INSERT INTO mrjks.ruleiszero(sub, pre, obj, isliteral, tripletype, rule, v1, v2, v3, inferredsteps)" + 
-			"VALUES (" + 
-						row.getLong(COLUMN_SUB) + "," + 
-			row.getLong(COLUMN_PRE) + "," + 
-						row.getLong(COLUMN_OBJ) + "," + 
-			row.getBool(COLUMN_IS_LITERAL) + "," + 
-						row.getInt(COLUMN_TRIPLE_TYPE) + "," +
-			row.getInt(COLUMN_RULE) + "," +  
-						row.getLong(COLUMN_V1) + "," + 
-			row.getLong(COLUMN_V2) + "," + 
-						row.getLong(COLUMN_V3) + "," + 
-			row.getInt(COLUMN_INFERRED_STEPS) + ");");
-				System.out.println("-------Insert ----------");
-				System.out.println(row);
-			}
-			
-			Statement delete = QueryBuilder.delete()
-			.from(KEYSPACE, COLUMNFAMILY_JUSTIFICATIONS)
-			.where(QueryBuilder.eq(COLUMN_SUB, row.getLong(CassandraDB.COLUMN_SUB)))
-			.and(QueryBuilder.eq(COLUMN_PRE, row.getLong(CassandraDB.COLUMN_PRE)))
-			.and(QueryBuilder.eq(COLUMN_OBJ, row.getLong(CassandraDB.COLUMN_OBJ)))
-			.and(QueryBuilder.eq(COLUMN_IS_LITERAL, row.getBool(COLUMN_IS_LITERAL)));
-			session.execute(delete);
-			System.out.println(row);
-		}
-		*/
-//		SimpleClientDataStax scds = new SimpleClientDataStax();
-//		scds.connect(DEFAULT_HOST);
-//		
-//		System.out.println("Select Primary Key");
-//		//modified select partition key and delete using partition key
-//		Statement select = QueryBuilder.select()
-//				.all()
-//				.from(KEYSPACE, COLUMNFAMILY_JUSTIFICATIONS)
-//				.where(QueryBuilder.eq(COLUMN_INFERRED_STEPS, 0));
-//		select.setFetchSize(100);
-//		ResultSet result = scds.getSession().execute(select);
-//		//List<Row> rows = scds.getSession().executeAsync(statement);		
-//		//List<Row> rows = scds.getSession().execute(select).all();
-//		
-//		while(true){
-//			Row delrow = result.one();
-//			if(delrow == null)
-//				break;
-//			Where dQuery = QueryBuilder.delete()
-//					.from(KEYSPACE, COLUMNFAMILY_JUSTIFICATIONS)
-//					.where(QueryBuilder.eq(COLUMN_SUB, delrow.getLong(CassandraDB.COLUMN_SUB)))
-//					.and(QueryBuilder.eq(COLUMN_PRE, delrow.getLong(CassandraDB.COLUMN_PRE)))
-//					.and(QueryBuilder.eq(COLUMN_OBJ, delrow.getLong(CassandraDB.COLUMN_OBJ)))
-//					.and(QueryBuilder.eq(COLUMN_IS_LITERAL, delrow.getBool(COLUMN_IS_LITERAL)));
-//			System.out.println(delrow);
-//			session.execute(dQuery);
-//		}		
-		
-//		Where dQuery = QueryBuilder.delete()
-//				.from(KEYSPACE, COLUMNFAMILY_JUSTIFICATIONS)
-//				.where(QueryBuilder.eq(COLUMN_RULE, ByteBufferUtil.bytes(0)));
-//				scds.getSession().execute(dQuery);
-		
-//		scds.close();		
-		
-//	}
-	
-	//create by LiYang
-//	public static void createReasonTable(){
-//		SimpleClientDataStax scds = new SimpleClientDataStax();
-//		scds.connect(DEFAULT_HOST);
-//		//Statement st = QueryBuilder
-//		
-//		for (int i = 1; i <= 7; i++ ){			
-//			System.out.println("Select Primary Key");
-//			//modified select partition key and delete using partition key
-//			Statement select = QueryBuilder.select()
-//					.all()
-//					.from(KEYSPACE, COLUMNFAMILY_JUSTIFICATIONS)
-//					.where(QueryBuilder.eq(COLUMN_INFERRED_STEPS, i));
-//			select.setFetchSize(100);
-//			ResultSet result = scds.getSession().execute(select);
-//			
-//			Session session = scds.getSession();
-//			while(true){
-//				Row insertrow = result.one();
-//				if(insertrow == null)
-//					break;
-//				Insert insert = QueryBuilder
-//						.insertInto(KEYSPACE, COLUMNFAMILY_JUSTIFICATIONS)
-//						.value(COLUMN_SUB, insertrow.getLong(CassandraDB.COLUMN_SUB))
-//						.value(COLUMN_PRE, insertrow.getLong(CassandraDB.COLUMN_PRE))
-//						.value(COLUMN_OBJ, insertrow.getLong(CassandraDB.COLUMN_OBJ))
-//						.value(COLUMN_IS_LITERAL, insertrow.getBool(COLUMN_IS_LITERAL))
-//						.value(COLUMN_TRIPLE_TYPE, insertrow.getLong(CassandraDB.COLUMN_TRIPLE_TYPE))
-//						.value(COLUMN_SUB, insertrow.getLong(CassandraDB.COLUMN_SUB));
-//						
-//			}	
-//		}
-//	}
-	
 	public static void main(String[] args) {
 		try {
 			CassandraDB db = new CassandraDB();		
 			db.init();		
-//			db.createIndexOnTripleType();
-//			db.createIndexOnRule();
-//			db.createIndexOnInferredSteps();
-//			db.createIndexOnTransitiveLevel();
-//			db.insertResources(100, "Hello World!");
 			HashMap<Long, Integer> schemaTriples = new HashMap<>();
 			Set<Integer> filters = new HashSet<Integer>();
 			filters.add(TriplesUtils.SCHEMA_TRIPLE_SUBPROPERTY);
@@ -1482,8 +1047,6 @@ public class CassandraDB {
 			/*
 			 * 改动
 			 */
-			
-			
 			db.loadSetIntoMemory(schemaTriples, filters, 0);
 			//db.loadMapIntoMemory(filters, inverted)
 						

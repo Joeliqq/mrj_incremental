@@ -23,14 +23,14 @@ public class TripleSource implements WritableComparable<TripleSource> {
 	byte derivation = 0;
 	int step = 0;
 	int transitive_level = 0;
-	int additionlabel = 0;		// ?
+	int updatelabel = 0;		// ?
 
 	@Override
 	public void readFields(DataInput in) throws IOException {
 		derivation = in.readByte();
 		step = in.readInt();
 		transitive_level = in.readInt();
-		additionlabel = in.readInt();
+		updatelabel = in.readInt();
 	}
 
 	@Override
@@ -38,7 +38,7 @@ public class TripleSource implements WritableComparable<TripleSource> {
 		out.write(derivation);
 		out.writeInt(step);
 		out.writeInt(transitive_level);
-		out.writeInt(additionlabel);
+		out.writeInt(updatelabel);
 	}
 
 	@Override
@@ -68,11 +68,11 @@ public class TripleSource implements WritableComparable<TripleSource> {
 	}
 	
 	public Integer getLabel(){
-		return additionlabel;
+		return updatelabel;
 	}
 	
 	public void setLabel(Integer r){
-		this.additionlabel = r;
+		this.updatelabel = r;
 	}
 	
 	public void setDerivation(byte ruleset) {

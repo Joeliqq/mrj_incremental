@@ -232,44 +232,5 @@ public class MapReduceReasonerJobConfig {
 
 	    return job;
 	}
-/*
-	public static void CreateTables(String jobname){
-		Builder builder = Cluster.builder();
-		builder.addContactPoint(CassandraDB.DEFAULT_HOST);
-		SocketOptions socketoptions= new SocketOptions().setKeepAlive(true).setReadTimeoutMillis(10 * 10000).setConnectTimeoutMillis(5 * 10000);
-		Cluster clu = builder.build();
-		Session session = clu.connect();
-		
-		String query = "";
-		if(jobname == "RDFS special properties reasoning"){
-			query = "CREATE TABLE IF NOT EXISTS " + "mrjks" + "."  + jobname + 
-					" ( " + 
-	                "sub" + " bigint, " + 
-	                "pre" + " bigint, " +
-	                "obj" + " bigint, " +	
-	        		"rule int, " +
-	                "v1" + " bigint, " +
-	                "v2" + " bigint, " +
-	                "v3" + " bigint, " +
-	                "transitiveleves int" + 
-	                ", primary key((sub, pre, obj, rule) ,v1, v2, v3 ))";
-		}
-		else {
-			query = "CREATE TABLE IF NOT EXISTS " + "mrjks" + "."  + jobname + 
-					" ( " + 
-	                "sub" + " bigint, " + 
-	                "pre" + " bigint, " +
-	                "obj" + " bigint, " +	
-	        		"rule int, " +
-	                "v1" + " bigint, " +
-	                "v2" + " bigint, " +
-	                "v3" + " bigint, " +
-	                ", primary key((id, rule) ,v1, v2, v3))";
-		}
-    		
-        session.execute(query);
-        System.out.println(query);
-    	System.out.println("--------Create Table----------");
-	}
-	*/
+
 }
